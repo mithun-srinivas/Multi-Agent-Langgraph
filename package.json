@@ -1,0 +1,27 @@
+{
+  "name": "multi-agent-linkedin-post-generator",
+  "version": "1.0.0",
+  "description": "A multi-agent LinkedIn post generator using LangGraph and Gemini",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "keywords": [
+    "langgraph",
+    "gemini",
+    "linkedin",
+    "ai",
+    "multi-agent"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@langchain/core": "^0.3.26",
+    "@langchain/google-genai": "^0.1.6",
+    "@langchain/langgraph": "^0.2.38",
+    "dotenv": "^16.4.7"
+  }
+}
+
