@@ -1,83 +1,33 @@
 import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { validateConfig } from './config.js';
-import { runWorkflow, streamWorkflow } from './graph/workflow.js';
-import { runResearch } from './agents/researchAgent.js';
-import { writePost } from './agents/writerAgent.js';
+import { runWorkflow } from './graph/workflow.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-export const generateLinkedInPost = async (options) => {
-  validateConfig();
-  
-  const result = await runWorkflow(options);
-  
-  return {
-    success: result.postGenerated,
-    post: result.post,
-    research: result.research,
-    errors: result.errors,
-  };
-};
-
-export async function* generateLinkedInPostStream(options) {
-  validateConfig();
-  
-  for await (const update of streamWorkflow(options)) {
-    yield update;
-  }
-}
-
-const savePostToFile = (post, filename = null) => {
-  const timestamp = new Date().toISOString().replaceAll(':', '-').replaceAll('.', '-').slice(0, 19);
-  const outputFilename = filename || `linkedin-post-${timestamp}.txt`;
-  const outputDir = path.resolve(__dirname, '../output');
-  
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
-  }
-  
-  const outputPath = path.join(outputDir, outputFilename);
-  
-  const fileContent = `LinkedIn Post
-Generated: ${new Date().toLocaleString()}
-${'─'.repeat(50)}
-
-${post}
-
-${'─'.repeat(50)}
-Character Count: ${post.length}
-`;
-
-  fs.writeFileSync(outputPath, fileContent, 'utf8');
-  return outputPath;
-};
-
-const runDemo = async () => {
-  console.log('🚀 Generating LinkedIn post...');
+const main = async () => {
+  console.log('Generating LinkedIn post...');
 
   try {
-    const result = await generateLinkedInPost({
+    validateConfig();
+    
+    const result = await runWorkflow({
       industry: 'artificial intelligence',
       specificTopic: 'AI-powered productivity tools and their impact on remote work',
-      tone: 'inspirational and thought-provoking',
+      tone: 'inspirational',
       authorContext: 'A tech professional passionate about the future of work',
     });
 
-    if (result.success) {
+    if (result.postGenerated) {
       console.log('\n' + result.post);
-      const savedPath = savePostToFile(result.post);
-      console.log(`\n✅ Saved to: ${savedPath}`);
+      
+      if (!fs.existsSync('./output')) fs.mkdirSync('./output');
+      const filename = `./output/post-${Date.now()}.txt`;
+      fs.writeFileSync(filename, result.post);
+      console.log(`\nSaved to: ${filename}`);
     } else {
-      console.error('❌ Failed:', result.errors.join(', '));
+      console.error('Failed:', result.error);
     }
   } catch (error) {
-    console.error('❌ Error:', error.message);
+    console.error('Error:', error.message);
   }
 };
 
-export { runResearch, writePost, runWorkflow, streamWorkflow, savePostToFile };
-
-runDemo();
+main();
